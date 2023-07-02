@@ -1,17 +1,17 @@
-import { useEffect, useState, useCallback } from 'react';
-import { Posts } from '../../components/Posts';
-import './styles.css';
+import { useEffect, useState, useCallback } from "react";
+import { Posts } from "../../components/Posts";
+import "./styles.css";
 
-import { Button } from '../../components/Button';
-import { TextInput } from '../../components/TextInput';
-import { loadPosts } from '../../utils/load-posts';
+import { Button } from "../../components/Button";
+import { TextInput } from "../../components/TextInput";
+import { loadPosts } from "../../utils/load-posts";
 
 export const Home = () => {
   const [posts, setPosts] = useState([]);
   const [allPosts, setAllPosts] = useState([]);
   const [page, setPage] = useState(0);
   const [postsPerPage] = useState(15);
-  const [searchValue, setSearchValue] = useState('');
+  const [searchValue, setSearchValue] = useState("");
 
   const noMorePosts = page + postsPerPage >= allPosts.length;
 
