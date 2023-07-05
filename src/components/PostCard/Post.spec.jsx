@@ -17,4 +17,9 @@ describe("<PostCard />", () => {
     expect(screen.getByRole("heading", { name: "title 1" })).toBeInTheDocument();
     expect(screen.getByText("body 1")).toBeInTheDocument();
   });
+
+  it("should match snapshot", () => {
+    const { container } = render(<PostCard {...props} />);
+    expect(container.firstChild).toMatchSnapshot();
+  });
 });
