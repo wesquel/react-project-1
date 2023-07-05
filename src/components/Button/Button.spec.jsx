@@ -11,4 +11,9 @@ describe("<Button/>", () => {
     const button = screen.getByRole("button", { name: /load more/i });
     expect(button).toHaveAttribute("class", "button");
   });
+  it("should match snapshot", () => {
+    const fn = jest.fn();
+    const { container } = render(<Button text="load more" disabled={false} onClick={fn} />);
+    expect(container.firstChild).toMatchSnapshot();
+  });
 });
