@@ -1,69 +1,61 @@
-import { useEffect, useState, useCallback } from "react";
-import { Posts } from "../../components/Posts";
-import "./styles.css";
+import { useCallback, useEffect, useState } from "react";
+// import { useFetch } from "./use-fetch";
 
-import { Button } from "../../components/Button";
-import { TextInput } from "../../components/TextInput";
-import { loadPosts } from "../../utils/load-posts";
+const useAsync = (asyncFunction, shouldRun) => {
+  const [result, setResult] = useState();
+  const [error, setError] = useState();
+  const [status, setStatus] = useState("idle");
 
-export const Home = () => {
-  const [posts, setPosts] = useState([]);
-  const [allPosts, setAllPosts] = useState([]);
-  const [page, setPage] = useState(0);
-  const [postsPerPage] = useState(15);
-  const [searchValue, setSearchValue] = useState("");
+  const run = useCallback(async () => {
+    setResult(null);
+    setError(null);
 
-  const noMorePosts = page + postsPerPage >= allPosts.length;
+    await new Promise((r) => setTimeout(r, 2000));
+    setStatus("pending");
 
-  const filteredPosts = searchValue
-    ? allPosts.filter((post) => {
-        return post.title.toLowerCase().includes(searchValue.toLowerCase());
+    return asyncFunction()
+      .then((response) => {
+        setStatus("settled");
+        setResult(response);
       })
-    : posts;
-
-  const handleLoadPosts = useCallback(async (page, postsPerPage) => {
-    const postAndPhotos = await loadPosts();
-
-    setPosts(postAndPhotos.slice(page, postsPerPage));
-    setAllPosts(postAndPhotos);
-  }, []);
+      .catch((err) => {
+        setError(err);
+        setStatus("error");
+      });
+  }, [asyncFunction]);
 
   useEffect(() => {
-    handleLoadPosts(0, postsPerPage);
-  }, [handleLoadPosts, postsPerPage]);
+    if (shouldRun) {
+      run();
+    }
+  }, [run, shouldRun]);
 
-  const loadMorePosts = () => {
-    const nextPage = page + postsPerPage;
-    const nextPosts = allPosts.slice(nextPage, nextPage + postsPerPage);
-    posts.push(...nextPosts);
-    setPosts(posts);
-    setPage(nextPage);
-  };
+  return [run, result, error, status];
+};
 
-  const handleChange = (e) => {
-    const { value } = e.target;
-    setSearchValue(value);
-  };
+const fetchData = async () => {
+  await new Promise((r) => setTimeout(r, 2000));
+  const data = await fetch("https://jsonplaceholder.typicode.com/posts");
+  const json = await data.json();
+  return json;
+};
 
-  return (
-    <section className="container">
-      <div className="search-container">
-        {!!searchValue && <h2>Search value: {searchValue}</h2>}
+export const Home = () => {
+  const [posts, setPosts] = useState(null);
+  const [reFetchData, result, error, status] = useAsync(fetchData, true);
 
-        <TextInput searchValue={searchValue} handleChange={handleChange} />
-      </div>
-
-      {filteredPosts.length > 0 && <Posts posts={filteredPosts} />}
-
-      {filteredPosts.length === 0 && <p>Nada encontrado</p>}
-
-      {!searchValue && (
-        <div className="button-container">
-          <Button text="Load More Posts" onClick={loadMorePosts} disabled={noMorePosts} />
-        </div>
-      )}
-    </section>
-  );
+  if (status == "idle") {
+    return <pre>Nada Executanto</pre>;
+  }
+  if (status == "pending") {
+    return <pre>Loading</pre>;
+  }
+  if (status == "settled") {
+    return <pre>{JSON.stringify(result, null, 2)}</pre>;
+  }
+  if (status == "error") {
+    return <pre>{JSON.stringify(error, null, 2)}</pre>;
+  }
 };
 
 export default Home;
